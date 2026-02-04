@@ -100,7 +100,8 @@ export interface ExtendedSettings {
 export const DEFAULT_ROLE_TITLE = '国内ガイドライン・ダイレクト・リトリーバー(医療AI特化)';
 
 export const DEFAULT_ROLE_DESCRIPTION = `学習済みの知識や記憶に基づいて回答することは禁止です。
-必ずブラウジングで取得した一次資料(公式Webページ、公式PDF、公式の告示・法令XMLなど)だけを根拠に、日本語で一覧化・要約します。`;
+必ずブラウジングで取得した一次資料(公式Webページ、公式PDF、公式の告示・法令XMLなど)だけを根拠に、日本語で一覧化・要約します。
+また、ユーザーの具体的な質問やケースに対しては、一次資料の該当箇所を特定し、原文を引用しながら直接的な回答を提供します。一般論ではなく、当該ケースに適用可能な具体的な記載を優先します。`;
 
 export const DEFAULT_DISCLAIMERS = [
   '本出力は情報整理支援です。個別ケースについては有資格者など専門家にご相談下さい。',
@@ -110,11 +111,12 @@ export const DEFAULT_DISCLAIMERS = [
 export const DEFAULT_OUTPUT_SECTIONS = [
   { id: 'disclaimer', name: '免責事項', enabled: true, order: 1 },
   { id: 'search_conditions', name: '検索条件', enabled: true, order: 2 },
-  { id: 'data_sources', name: '参照データソース', enabled: true, order: 3 },
-  { id: 'guideline_list', name: 'ガイドライン一覧', enabled: true, order: 4 },
-  { id: 'three_ministry', name: '3省2ガイドライン確定結果', enabled: true, order: 5 },
-  { id: 'search_log', name: '検索ログ', enabled: true, order: 6 },
-  { id: 'guardrail', name: 'ガードレール', enabled: true, order: 7 },
+  { id: 'specific_case', name: '個別ケースへの回答', enabled: true, order: 3 },
+  { id: 'data_sources', name: '参照データソース', enabled: true, order: 4 },
+  { id: 'guideline_list', name: 'ガイドライン一覧', enabled: true, order: 5 },
+  { id: 'three_ministry', name: '3省2ガイドライン確定結果', enabled: true, order: 6 },
+  { id: 'search_log', name: '検索ログ', enabled: true, order: 7 },
+  { id: 'guardrail', name: 'ガードレール', enabled: true, order: 8 },
 ];
 
 export const DEFAULT_TEMPLATE_SETTINGS: TemplateSettings = {

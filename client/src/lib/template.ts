@@ -46,6 +46,7 @@ PROOF_SECTION_END`;
 ## Variables
 $Date_today$: システムの現在日付(YYYY-MM-DD)
 $Query$: ユーザーの探索テーマ
+$SpecificQuestion$: ユーザーの具体的な質問やケース（例: 「SaMD承認申請時にAIモデルの学習データに関してどのような情報を提出すべきか」）
 $Scope$: 対象範囲(例: 医療AI、生成AI、SaMD、医療情報セキュリティ、医療データ利活用、研究倫理)
 $Must_keywords$: 必須検索語
 $Optional_keywords$: 追加検索語
@@ -58,6 +59,7 @@ $Version$: 版数
 $Doc_url$: 公式URL(HTMLまたはPDFの直リンク)
 $Doc_type$: 文書種別(ガイドライン、通知、事務連絡、Q&A、手引き、報告書、告示、法令など)
 $Fetched_text$: $Doc_url$ から取得した本文テキスト
+$RelevantSection$: $SpecificQuestion$ に関連する本文箇所（ページ番号・章節番号を含む）
 
 $Law_name$: 法令名
 $Law_ID$: e-Gov法令ID
@@ -87,21 +89,32 @@ ${search.excludedDomains.map(d => `     - ${d}`).join('\n')}`;
 
   rulesSection += `
 
-3. 版管理
+3. 個別ケースへの対応
+   ・$SpecificQuestion$ が与えられた場合、一般論ではなく当該ケースに直接適用可能な条文・記載を特定する
+   ・該当箇所は「○○ガイドライン 第X章 X.X節 pXX」のように具体的に引用する
+   ・ケースに対して複数の解釈があり得る場合は、選択肢を列挙し、それぞれの根拠条文を示す
+   ・ガイドラインに明示的な記載がない場合は「明示的記載なし」と明記し、類似規定や一般原則からの推論であることを明示する
+
+4. 版管理
    ・同名文書が複数版ある場合、${search.priorityRule === 'revised_date' ? '改定日が最も新しい最新版' : search.priorityRule === 'published_date' ? '公開日が最も新しい版' : '関連度が最も高い版'}を特定して採用する
    ・旧版も見つかった場合は「旧版」として別枠で併記する
 
-4. 出力リンク形式
+5. 出力リンク形式
    ・出力するURLは必ず Markdown の [表示ラベル](URL) 形式で提示する
    ・生のURL文字列をそのまま表示しない
 
-5. 再帰的参照
+6. 再帰的参照
    ・一次資料内に別の指針、通知、Q&A、別添、関連ガイドライン、用語集、チェックリストが参照されている場合、リンクを辿って同様に取得し、一覧に追加する${search.recursiveDepth > 0 ? `（最大${search.recursiveDepth}階層まで）` : ''}
-   ・重複は統合し、最新版を優先する`;
+   ・重複は統合し、最新版を優先する
+
+7. 回答の具体性
+   ・一般論や抽象的な説明を避け、ユーザーの質問に直接答える
+   ・「○○については○○ガイドラインを参照してください」ではなく、該当箇所を引用して具体的に回答する
+   ・引用時は「○○ガイドライン 第X章 X.X節 pXX」のように出典を明記する`;
 
   // e-Gov section (conditionally included)
   const eGovSection = `EGOV_SECTION_BEGIN
-6. e-Gov法令取得
+8. e-Gov法令取得
    ・文書内に法令(法律、政令、省令、告示など)が参照されている場合、可能ならe-Govで法令IDを特定し、下記の正規フォーマットでAPIに直接アクセスしてXMLから条文を取得する
    ・検索エンジンURL、短縮URL、リダイレクトURLを生成しない${output.includeLawExcerpts ? '\n   ・該当条文の短い抜粋を含める' : ''}
 
@@ -143,7 +156,22 @@ EGOV_SECTION_END`;
 1. 各文書で参照されている主要な法令名を抽出する
 2. e-Govで法令IDを特定できる場合、固定フォーマットのAPI URLを生成してXMLを取得する
 3. 医療AIに関係する条文参照がある場合のみ、該当条文を短く引用し、どの要求事項と紐付くか整理する
-4. 法令IDを特定できない場合は「法令ID特定不能」と明記する`;
+4. 法令IDを特定できない場合は「法令ID特定不能」と明記する
+
+## Phase 5: 個別ケース分析（$SpecificQuestion$ が与えられた場合）
+1. $Query$ を「具体的に何を知りたいか」という観点で分解する
+   例: 「ユビーAI問診の責任分界点」→ 「AI問診システムにおける医療機関と提供事業者の責任範囲をどう定めるか」
+2. Phase 2-4で取得した一次資料から、当該ケースに**直接適用可能な記載**を抽出する
+   ・「○○ガイドライン 第X章 X.X節 pXX」のように具体的に引用
+   ・抜粋は原文のまま記載し、要約は別に付す
+3. 複数の解釈が可能な場合:
+   ・選択肢A/B/Cを列挙
+   ・各選択肢の根拠条文を示す
+   ・どの解釈が妥当かは明言せず、判断材料を提示
+4. 明示的な記載がない場合:
+   ・「明示的記載なし」と明記
+   ・類似規定（例: 他の医療機器の責任分界事例）があれば参考として提示
+   ・一般原則（例: 3省2GLの責任分界に関する基本的考え方）を引用`;
 
   // Build output format section based on enabled sections
   const enabledSections = template.outputSections
@@ -213,6 +241,29 @@ ${output.detailLevel === 'concise' ? `・タイトル
 ・実務上の重要ポイント
 `;
         break;
+      case 'specific_case':
+        outputFormatSection += `
+■ 個別ケースへの回答
+【質問の分解】
+・ユーザーの質問を「何を」「どの観点で」知りたいかに分解
+
+【直接適用可能な記載】
+・根拠文書: ○○ガイドライン
+・該当箇所: 第X章 X.X節 pXX
+・原文抜粋: 「...」
+・要約: ...
+
+【複数解釈がある場合】
+・選択肢A: ... （根拠: ○○GL pXX）
+・選択肢B: ... （根拠: △△通知）
+・判断のポイント: ...
+
+【明示的記載がない場合】
+・類似規定の参照: ...
+・一般原則からの推論: ...
+・専門家への相談推奨事項: ...
+`;
+        break;
       case 'search_log':
         if (output.includeSearchLog) {
           outputFormatSection += `
@@ -239,6 +290,7 @@ ${output.detailLevel === 'concise' ? `・タイトル
   const inputSection = `# Input
 Date_today: [[DATE_TODAY]]
 Query: [[QUERY]]
+SpecificQuestion: [[SPECIFIC_QUESTION]]
 Scope: [[SCOPE]]
 
 Audiences:
@@ -257,13 +309,15 @@ Exclude_keywords:
 [[EXCLUDE_KEYWORDS_LIST]]
 
 Instruction:
-次の条件で検索と整理を実行せよ。
+次の条件で検索と整理を実行し、SpecificQuestion に対する具体的な回答を提供せよ。
 - 必須検索語: Must_keywords
 - 追加検索語: Optional_keywords
 - 除外キーワード: Exclude_keywords
 - 対象者: Audiences
 - 優先ドメイン: PriorityDomains
-- 可能な限り公式一次資料(PDF含む)へ到達し、最新版を確定すること`;
+- 可能な限り公式一次資料(PDF含む)へ到達し、最新版を確定すること
+- SpecificQuestion に対しては、一般論ではなく該当箇所を引用して直接回答すること
+- 回答に使用した根拠は「○○ガイドライン 第X章 X.X節 pXX」の形式で明記すること`;
 
   // Build proof result section
   const proofResultSection = `PROOF_SECTION_BEGIN
@@ -303,6 +357,13 @@ export function generatePrompt(config: AppConfig, extSettings?: ExtendedSettings
   
   // Replace query
   prompt = prompt.replace(/\[\[QUERY\]\]/g, config.query || '(未入力)');
+
+  // Replace specific question (derive from query if not separately specified)
+  // The query itself is treated as the specific question to ensure concrete answers
+  const specificQuestion = config.query
+    ? `「${config.query}」について、適用可能な具体的な条文・記載を特定し、原文を引用して回答せよ`
+    : '(未入力)';
+  prompt = prompt.replace(/\[\[SPECIFIC_QUESTION\]\]/g, specificQuestion);
   
   // Replace scope
   prompt = prompt.replace(/\[\[SCOPE\]\]/g, config.scope.join('、') || '(未指定)');
