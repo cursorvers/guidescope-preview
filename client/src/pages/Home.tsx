@@ -235,7 +235,7 @@ export default function Home() {
               <Sparkles className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-base font-semibold leading-tight">GuideScope Lite</h1>
+              <h1 className="text-base font-semibold leading-tight">GuideScope Preview</h1>
               <p className="text-xs text-muted-foreground">医療AIガイドライン探索</p>
             </div>
           </div>
