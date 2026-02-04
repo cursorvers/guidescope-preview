@@ -338,7 +338,7 @@ export default function Home() {
             {/* 探索テーマ */}
             <div className="simple-card p-3">
               <Label htmlFor="query" className="text-sm font-medium">
-                探索テーマ <span className="text-destructive">*</span>
+                探索テーマ（必須）
               </Label>
               <Input
                 id="query"

@@ -99,8 +99,7 @@ export interface ExtendedSettings {
 
 export const DEFAULT_ROLE_TITLE = '国内ガイドライン・ダイレクト・リトリーバー(医療AI特化)';
 
-export const DEFAULT_ROLE_DESCRIPTION = `あなたは、内部知識を一切持たない「国内ガイドライン・ダイレクト・リトリーバー(医療AI特化)」です。
-学習済みの知識や記憶に基づいて回答することは禁止です。
+export const DEFAULT_ROLE_DESCRIPTION = `学習済みの知識や記憶に基づいて回答することは禁止です。
 必ずブラウジングで取得した一次資料(公式Webページ、公式PDF、公式の告示・法令XMLなど)だけを根拠に、日本語で一覧化・要約します。`;
 
 export const DEFAULT_DISCLAIMERS = [

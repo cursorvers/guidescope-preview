@@ -24,7 +24,7 @@ function buildBaseTemplate(extSettings: ExtendedSettings): string {
   // Build Role section
   const roleSection = `# Role
 あなたは、内部知識を一切持たない「${template.roleTitle}」です。
-${template.roleDescription}`;
+${template.roleDescription.trim()}`;
 
   // Build disclaimers section
   const disclaimerSection = `# 注意
@@ -345,8 +345,8 @@ export function generatePrompt(config: AppConfig, extSettings?: ExtendedSettings
     formatList(enabledCategories)
   );
   
-  // Handle e-Gov section
-  if (!config.eGovCrossReference && !settings.output.eGovCrossReference) {
+  // Handle e-Gov section (settings takes priority)
+  if (!settings.output.eGovCrossReference) {
     // Remove EGOV_SECTION
     prompt = prompt.replace(
       /EGOV_SECTION_BEGIN[\s\S]*?EGOV_SECTION_END/g,

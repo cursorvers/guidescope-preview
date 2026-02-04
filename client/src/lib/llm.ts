@@ -20,7 +20,7 @@ export interface LLMModel {
   promptAdjustments?: {
     removeEgovApi?: boolean;
     simplifyInstructions?: boolean;
-    reduceRecursiveDepth?: boolean;
+    recursiveDepth?: number; // 1-3階層
     addSearchTips?: boolean;
   };
 }
@@ -68,7 +68,7 @@ export const LLM_PROVIDERS: LLMProviderInfo[] = [
       ],
       promptAdjustments: {
         simplifyInstructions: true,
-        reduceRecursiveDepth: true,
+        recursiveDepth: 1,
       },
     },
     paidModels: [
@@ -94,6 +94,9 @@ export const LLM_PROVIDERS: LLMProviderInfo[] = [
           'Deep Research機能を活用',
           '複数文書の同時分析が可能',
         ],
+        promptAdjustments: {
+          recursiveDepth: 3,
+        },
       },
       {
         id: 'gemini-2-flash',
@@ -115,6 +118,9 @@ export const LLM_PROVIDERS: LLMProviderInfo[] = [
           'Deep Researchで網羅的な検索が可能',
           'e-Gov API直接アクセス推奨',
         ],
+        promptAdjustments: {
+          recursiveDepth: 3,
+        },
       },
     ],
   },
@@ -178,6 +184,7 @@ export const LLM_PROVIDERS: LLMProviderInfo[] = [
         ],
         promptAdjustments: {
           removeEgovApi: true,
+          recursiveDepth: 2,
         },
       },
       {
@@ -201,6 +208,7 @@ export const LLM_PROVIDERS: LLMProviderInfo[] = [
         ],
         promptAdjustments: {
           removeEgovApi: true,
+          recursiveDepth: 2,
         },
       },
     ],
@@ -266,6 +274,7 @@ export const LLM_PROVIDERS: LLMProviderInfo[] = [
         promptAdjustments: {
           removeEgovApi: true,
           addSearchTips: true,
+          recursiveDepth: 2,
         },
       },
       {
@@ -292,6 +301,7 @@ export const LLM_PROVIDERS: LLMProviderInfo[] = [
         promptAdjustments: {
           removeEgovApi: true,
           addSearchTips: true,
+          recursiveDepth: 2,
         },
       },
     ],
@@ -326,7 +336,7 @@ export const LLM_PROVIDERS: LLMProviderInfo[] = [
       ],
       promptAdjustments: {
         simplifyInstructions: true,
-        reduceRecursiveDepth: true,
+        recursiveDepth: 1,
       },
     },
     paidModels: [
@@ -349,6 +359,9 @@ export const LLM_PROVIDERS: LLMProviderInfo[] = [
           'Pro Searchで網羅的な検索',
           '複数ソースの自動統合',
         ],
+        promptAdjustments: {
+          recursiveDepth: 2,
+        },
       },
     ],
   },
@@ -382,7 +395,7 @@ export const LLM_PROVIDERS: LLMProviderInfo[] = [
       ],
       promptAdjustments: {
         simplifyInstructions: true,
-        reduceRecursiveDepth: true,
+        recursiveDepth: 1,
       },
     },
     paidModels: [
@@ -405,6 +418,9 @@ export const LLM_PROVIDERS: LLMProviderInfo[] = [
           'Office文書との連携が便利',
           'Word/Excelでの整理に活用',
         ],
+        promptAdjustments: {
+          recursiveDepth: 2,
+        },
       },
     ],
   },
@@ -469,11 +485,11 @@ export function adjustPromptForLLM(
     );
   }
 
-  // 再帰的参照の深さを減らす
-  if (adj.reduceRecursiveDepth) {
+  // 再帰的参照の深さを調整
+  if (adj.recursiveDepth !== undefined) {
     adjustedPrompt = adjustedPrompt.replace(
       /（最大\d+階層まで）/g,
-      '（最大1階層まで）'
+      `（最大${adj.recursiveDepth}階層まで）`
     );
   }
 
