@@ -462,6 +462,31 @@ export default function Home() {
               <TabsContent value="queries" className="flex-1 m-0 p-0">
                 <div className="h-full min-h-[400px] lg:min-h-[600px] overflow-auto p-4">
                   <h4 className="font-medium text-sm mb-3">検索クエリ一覧</h4>
+                  
+                  {/* 検索クエリの使い方（折りたたみ） */}
+                  <Collapsible className="mb-4">
+                    <CollapsibleTrigger className="flex items-center gap-1 text-xs text-primary hover:underline mb-2">
+                      <HelpCircle className="w-3 h-3" />
+                      <span>検索クエリの使い方</span>
+                      <ChevronDown className="w-3 h-3" />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg text-xs space-y-2">
+                        <p className="font-medium text-foreground">📋 使い方</p>
+                        <ol className="space-y-1 text-muted-foreground list-decimal list-inside">
+                          <li>各クエリ右側のコピーボタンをクリック</li>
+                          <li>Google検索またはLLMのブラウジング機能に貼り付け</li>
+                          <li>検索結果から公式ガイドラインを確認</li>
+                        </ol>
+                        <p className="font-medium text-foreground mt-2">💡 活用シーン</p>
+                        <ul className="space-y-1 text-muted-foreground list-disc list-inside">
+                          <li>LLMが自動検索しない場合の手動検索ガイド</li>
+                          <li>特定ドメイン（厚労省、経産省等）に絞った検索</li>
+                          <li>プロンプト全体を使わず部分的に検索したい場合</li>
+                        </ul>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
                   <div className="space-y-2">
                     {searchQueries.map((query, i) => (
                       <div key={i} className="flex items-start gap-2 p-2 bg-muted/50 rounded text-sm">
