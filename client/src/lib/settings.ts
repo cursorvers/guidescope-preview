@@ -1,13 +1,15 @@
 /**
  * Medical AI Prompt Builder - Extended Settings Management
  * Design: Medical Precision 2.0
- * 
+ *
  * Features:
  * - Template customization (Role, disclaimers, output format)
  * - Search settings (operators, priority rules, excluded domains)
  * - Output settings (language, detail level, e-Gov cross-reference)
  * - UI/UX settings (theme, font size, default tab)
  */
+
+import { parseExtendedSettings } from './schemas';
 
 // ============================================================================
 // Type Definitions
@@ -179,8 +181,9 @@ export function loadExtendedSettings(): ExtendedSettings {
     const stored = localStorage.getItem(EXTENDED_SETTINGS_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
+
       // Merge with defaults to ensure all fields exist
-      return {
+      const merged = {
         template: { ...DEFAULT_TEMPLATE_SETTINGS, ...parsed.template },
         search: { ...DEFAULT_SEARCH_SETTINGS, ...parsed.search },
         output: { ...DEFAULT_OUTPUT_SETTINGS, ...parsed.output },
@@ -188,6 +191,15 @@ export function loadExtendedSettings(): ExtendedSettings {
         version: parsed.version || 1,
         lastUpdated: parsed.lastUpdated || new Date().toISOString(),
       };
+
+      // Validate with Zod schema
+      const validated = parseExtendedSettings(merged);
+      if (validated) {
+        return validated;
+      }
+
+      // If validation fails, log and return defaults
+      console.warn('ExtendedSettings validation failed, using defaults');
     }
   } catch (e) {
     console.error('Failed to load extended settings:', e);

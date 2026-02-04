@@ -17,9 +17,11 @@ import {
   TAB_PRESETS,
   createDefaultConfig,
   validateConfig,
+  parseConfigJSON,
   type ValidationResult,
 } from '@/lib/presets';
 import { decodeConfigFromURL } from '@/lib/template';
+import { parseAppConfig } from '@/lib/schemas';
 
 // Storage key for custom presets
 const CUSTOM_PRESETS_KEY = 'medai_custom_presets_v1';
@@ -51,24 +53,32 @@ export function useConfig() {
     // Try to restore from URL first
     const urlConfig = decodeConfigFromURL(window.location.href);
     if (urlConfig) {
-      // Clear the URL parameter after loading
-      window.history.replaceState({}, '', window.location.pathname);
-      return urlConfig;
+      // Validate URL config with Zod
+      const validated = parseAppConfig(urlConfig);
+      if (validated) {
+        // Clear the URL parameter after loading
+        window.history.replaceState({}, '', window.location.pathname);
+        return validated;
+      }
+      console.warn('URL config validation failed, trying localStorage');
     }
-    
+
     // Try to restore from localStorage
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (parsed && typeof parsed === 'object') {
-          return parsed as AppConfig;
+        // Validate with Zod schema
+        const validated = parseAppConfig(parsed);
+        if (validated) {
+          return validated;
         }
+        console.warn('LocalStorage config validation failed, using defaults');
       }
     } catch {
       // Ignore errors
     }
-    
+
     // Return default config
     return createDefaultConfig();
   });
@@ -217,18 +227,14 @@ export function useConfig() {
     setConfig(newConfig);
   }, [config.activeTab]);
   
-  // Import config from JSON
+  // Import config from JSON with Zod validation
   const importConfig = useCallback((json: string): boolean => {
-    try {
-      const parsed = JSON.parse(json);
-      if (parsed && typeof parsed === 'object' && 'activeTab' in parsed) {
-        setConfig(parsed as AppConfig);
-        return true;
-      }
-      return false;
-    } catch {
-      return false;
+    const validated = parseConfigJSON(json);
+    if (validated) {
+      setConfig(validated);
+      return true;
     }
+    return false;
   }, []);
   
   return {

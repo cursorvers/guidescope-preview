@@ -3,6 +3,8 @@
  * Design: Medical Precision (Swiss Design × Medical Device UI)
  */
 
+import { parseAppConfig } from './schemas';
+
 // ============================================================================
 // Type Definitions
 // ============================================================================
@@ -222,28 +224,47 @@ export interface ValidationResult {
 export function validateConfig(config: AppConfig): ValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
-  
+
   // Query is required
   if (!config.query.trim()) {
     errors.push('探索テーマを入力してください');
   }
-  
+
   // Warnings
   if (!config.officialDomainPriority) {
     warnings.push('公式ドメイン優先がオフです。非公式情報が混入する可能性があります。');
   }
-  
+
   if (!config.latestVersionPriority) {
     warnings.push('最新版優先がオフです。旧版のガイドラインが含まれる可能性があります。');
   }
-  
+
   if (config.eGovCrossReference && !config.dateToday) {
     warnings.push('e-Gov法令クロスリファレンスがオンですが、日付が未入力です。');
   }
-  
+
   return {
     isValid: errors.length === 0,
     errors,
     warnings,
   };
+}
+
+// ============================================================================
+// JSON Parsing with Zod Validation
+// ============================================================================
+
+/**
+ * Parse and validate AppConfig from JSON string
+ * Returns validated AppConfig or null if invalid
+ */
+export function parseConfigJSON(json: string): AppConfig | null {
+  try {
+    const parsed = JSON.parse(json);
+    const validated = parseAppConfig(parsed);
+    return validated;
+  } catch (e) {
+    console.error('Failed to parse config JSON:', e);
+    return null;
+  }
 }
