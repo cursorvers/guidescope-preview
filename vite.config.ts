@@ -5,7 +5,7 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   // GitHub Pages deployment base path
-  base: process.env.GITHUB_ACTIONS ? '/guidescope/' : '/',
+  base: process.env.GITHUB_ACTIONS ? '/guidescope-lite/' : '/',
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
