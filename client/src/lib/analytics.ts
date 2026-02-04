@@ -6,6 +6,9 @@
 // GA4 Measurement ID
 const GA_MEASUREMENT_ID = 'G-TX3Y6G4XWJ';
 
+// アプリバージョン（full / lite）
+const APP_VERSION = import.meta.env.VITE_MINIMAL_MODE === 'true' ? 'lite' : 'full';
+
 // gtag関数の型定義
 declare global {
   interface Window {
@@ -15,14 +18,17 @@ declare global {
 }
 
 /**
- * GA4イベントを送信
+ * GA4イベントを送信（app_version を自動付与）
  */
 export function trackEvent(
   eventName: string,
   params?: Record<string, string | number | boolean>
 ) {
   if (typeof window !== 'undefined' && window.gtag) {
-    window.gtag('event', eventName, params);
+    window.gtag('event', eventName, {
+      ...params,
+      app_version: APP_VERSION,
+    });
   }
 }
 
@@ -86,4 +92,4 @@ export function initGA4() {
   window.gtag('config', GA_MEASUREMENT_ID);
 }
 
-export { GA_MEASUREMENT_ID };
+export { GA_MEASUREMENT_ID, APP_VERSION };
