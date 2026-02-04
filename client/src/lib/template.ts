@@ -77,6 +77,9 @@ $Law_xml$: $U_xml$ から取得したXML`;
 2. 公式優先
    ・候補発見のために一般サイトを使ってよいが、内容の根拠は必ず公式一次資料に限る
    ・公式一次資料に到達できない場合は「公式資料未確認」と明記し、要約はしない
+   ・$Query$ に製品名/サービス名/企業名が含まれる場合、その企業の公式サイトも検索対象に追加する
+     例: 「ユビーAI問診」→ ubie.life, ubie.app 等を追加
+   ・企業HP上の利用規約、サービス仕様書、責任範囲に関する記載も一次資料として扱う
    ・優先ドメイン:
 [[PRIORITY_DOMAINS_LIST]]`;
 
@@ -130,19 +133,29 @@ EGOV_SECTION_END`;
 
 ## Phase 1: 探索計画の確定
 1. ユーザー入力から $Query と $Scope を整理する(目的、対象者、用途、期間)
-2. $Must_keywords を確定する。必ず次を含める
+2. $Query に製品名/サービス名/企業名が含まれる場合:
+   ・その企業の公式サイトドメインを特定する（例: ユビー → ubie.life）
+   ・PriorityDomains に追加し、利用規約・サービス仕様・責任範囲のページを検索対象とする
+3. $Must_keywords を確定する。必ず次を含める
    ・3省2ガイドライン
-3. $Optional_keywords を生成する。検索語は${output.languageMode === 'japanese_only' ? '日本語を基本とする' : output.languageMode === 'english_priority' ? '英語を優先し、必要に応じて日本語も併用する' : '日本語を基本とし、必要に応じて英語(SaMD等)も併用する'}
+   ・$Query に含まれる製品/サービス名
+4. $Optional_keywords を生成する。検索語は${output.languageMode === 'japanese_only' ? '日本語を基本とする' : output.languageMode === 'english_priority' ? '英語を優先し、必要に応じて日本語も併用する' : '日本語を基本とし、必要に応じて英語(SaMD等)も併用する'}
    追加検索語候補:
 [[OPTIONAL_KEYWORDS_LIST]]
-4. ${search.useSiteOperator ? '優先ドメインに対して site: 指定も併用する(例: site:mhlw.go.jp 医療AI ガイドライン)' : '優先ドメインを参考に検索する'}
-5. ${search.useFiletypeOperator && search.filetypes.length > 0 ? `filetype:${search.filetypes.join('/')} 指定を併用する` : '検索結果は必ず公開日・改定日を確認し、最新版らしいものを優先して開く'}
+5. ${search.useSiteOperator ? '優先ドメインに対して site: 指定も併用する(例: site:mhlw.go.jp 医療AI ガイドライン)' : '優先ドメインを参考に検索する'}
+6. ${search.useFiletypeOperator && search.filetypes.length > 0 ? `filetype:${search.filetypes.join('/')} 指定を併用する` : '検索結果は必ず公開日・改定日を確認し、最新版らしいものを優先して開く'}
 
 ## Phase 2: 候補文書の収集と一次資料取得
 1. 検索で見つかった候補を $Candidate_docs に記録する（最大${search.maxResults}件）
    ・タイトル、発行主体、版数、公開日、改定日、対象者、URL、文書種別、形式(PDF/HTML)
-2. 各候補について $Doc_url を開き、本文 $Fetched_text を取得する
-3. PDFの場合は本文を読み取り、医療AIに関係する箇所(AI、機械学習、生成AI、SaMD、医療機器、医療情報、匿名加工、仮名加工、委託、クラウド、越境移転、セキュリティ等)を特定する
+2. $Query に製品/サービス名が含まれる場合、その企業HP上の以下も取得する:
+   ・利用規約（Terms of Service）
+   ・プライバシーポリシー
+   ・サービス仕様書/機能説明
+   ・責任範囲/免責事項に関する記載
+   ・医療機関向け導入ガイド（あれば）
+3. 各候補について $Doc_url を開き、本文 $Fetched_text を取得する
+4. PDFの場合は本文を読み取り、医療AIに関係する箇所(AI、機械学習、生成AI、SaMD、医療機器、医療情報、匿名加工、仮名加工、委託、クラウド、越境移転、セキュリティ等)を特定する
 
 ## Phase 3: 必須テーマの確定
 1. 「3省2ガイドライン」を構成する文書を、公式一次資料に基づいて確定する
@@ -247,7 +260,14 @@ ${output.detailLevel === 'concise' ? `・タイトル
 【質問の分解】
 ・ユーザーの質問を「何を」「どの観点で」知りたいかに分解
 
-【直接適用可能な記載】
+【サービス提供者の公式情報】（製品/サービス名が含まれる場合）
+・企業名/サービス名: ...
+・公式サイト: [URL]
+・利用規約における責任範囲: 「...」（[利用規約URL]より引用）
+・医療機関との責任分界: 「...」
+・サービス仕様書/導入ガイドの記載: ...
+
+【直接適用可能な規制・ガイドライン】
 ・根拠文書: ○○ガイドライン
 ・該当箇所: 第X章 X.X節 pXX
 ・原文抜粋: 「...」
