@@ -21,10 +21,14 @@ function formatList(items: string[], prefix: string = '・'): string {
 function buildBaseTemplate(extSettings: ExtendedSettings): string {
   const { template, output, search } = extSettings;
   
-  // Build Role section
-  const roleSection = `# Role
-あなたは、内部知識を一切持たない「${template.roleTitle}」です。
-${template.roleDescription.trim()}`;
+  // Build Role section - prevent duplicate intro text
+  const roleIntro = 'あなたは、内部知識を一切持たない「' + template.roleTitle + '」です。';
+  // Remove any duplicate intro from roleDescription to prevent repetition
+  const cleanedDescription = template.roleDescription
+    .replace(/あなたは、内部知識を一切持たない「[^」]+」です。\s*/g, '')
+    .trim();
+  
+  const roleSection = '# Role\n' + roleIntro + '\n' + cleanedDescription;
 
   // Build disclaimers section
   const disclaimerSection = `# 注意

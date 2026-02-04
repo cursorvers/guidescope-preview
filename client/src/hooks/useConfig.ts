@@ -108,12 +108,12 @@ export function useConfig() {
     }));
   }, []);
   
-  // Toggle category
-  const toggleCategory = useCallback((index: number) => {
+  // Toggle category by name
+  const toggleCategory = useCallback((name: string) => {
     setConfig(prev => ({
       ...prev,
-      categories: prev.categories.map((cat, i) =>
-        i === index ? { ...cat, enabled: !cat.enabled } : cat
+      categories: prev.categories.map(cat =>
+        cat.name === name ? { ...cat, enabled: !cat.enabled } : cat
       ),
     }));
   }, []);
@@ -135,12 +135,12 @@ export function useConfig() {
     });
   }, []);
   
-  // Toggle keyword chip
-  const toggleKeywordChip = useCallback((index: number) => {
+  // Toggle keyword chip by name
+  const toggleKeywordChip = useCallback((name: string) => {
     setConfig(prev => ({
       ...prev,
-      keywordChips: prev.keywordChips.map((chip, i) =>
-        i === index ? { ...chip, enabled: !chip.enabled } : chip
+      keywordChips: prev.keywordChips.map(chip =>
+        chip.name === name ? { ...chip, enabled: !chip.enabled } : chip
       ),
     }));
   }, []);

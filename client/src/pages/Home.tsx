@@ -1,37 +1,32 @@
 /**
  * Medical AI Prompt Builder - Home Page
- * シンプル＆クリーンなデザイン、複数LLM対応
+ * シンプル＆クリーンなデザイン、LLM非依存
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { toast } from 'sonner';
 import {
   Settings,
   Copy,
   Download,
-  Upload,
   Share2,
   RotateCcw,
   ChevronDown,
   ChevronRight,
-  Check,
-  AlertCircle,
-  Info,
   Sparkles,
+  HelpCircle,
+  X,
 } from 'lucide-react';
 
 import { TAB_PRESETS, type AppConfig } from '@/lib/presets';
 import { generatePrompt, generateSearchQueries, configToJSON, parseConfigJSON, encodeConfigToURL } from '@/lib/template';
-import { LLM_PROVIDERS, getLLMProvider, getLLMModel, getFreePaidDiff, adjustPromptForLLM, type LLMProvider, DEFAULT_LLM_PROVIDER } from '@/lib/llm';
 import { useConfig } from '@/hooks/useConfig';
 
 export default function Home() {
@@ -48,9 +43,7 @@ export default function Home() {
     importConfig,
   } = useConfig();
 
-  const [selectedLLM, setSelectedLLM] = useState<LLMProvider>(DEFAULT_LLM_PROVIDER);
-  const [selectedModelId, setSelectedModelId] = useState<string>('');
-  const [showLLMInfo, setShowLLMInfo] = useState(false);
+  const [showUsageGuide, setShowUsageGuide] = useState(false);
   const [sectionsOpen, setSectionsOpen] = useState({
     scope: true,
     audience: true,
@@ -68,37 +61,13 @@ export default function Home() {
     return allPresets.find(p => p.id === config.activeTab) || TAB_PRESETS[0];
   }, [allPresets, config.activeTab]);
 
-  // 選択中のLLMプロバイダー情報
-  const llmProvider = useMemo(() => getLLMProvider(selectedLLM), [selectedLLM]);
-  
-  // 選択中のモデル
-  const selectedModel = useMemo(() => {
-    if (!llmProvider) return null;
-    if (!selectedModelId) return llmProvider.freeModel;
-    return getLLMModel(selectedLLM, selectedModelId) || llmProvider.freeModel;
-  }, [llmProvider, selectedLLM, selectedModelId]);
-
-  // 無料版/有料版の差分
-  const freePaidDiff = useMemo(() => getFreePaidDiff(selectedLLM), [selectedLLM]);
-
   // プロンプト生成
   const generatedPrompt = useMemo(() => {
-    const basePrompt = generatePrompt(config);
-    if (selectedModel) {
-      return adjustPromptForLLM(basePrompt, selectedModel);
-    }
-    return basePrompt;
-  }, [config, selectedModel]);
+    return generatePrompt(config);
+  }, [config]);
 
   // 検索クエリ生成
   const searchQueries = useMemo(() => generateSearchQueries(config), [config]);
-
-  // LLM変更時にモデルをリセット
-  useEffect(() => {
-    if (llmProvider) {
-      setSelectedModelId(llmProvider.freeModel.id);
-    }
-  }, [selectedLLM, llmProvider]);
 
   // コピー
   const handleCopy = async () => {
@@ -116,7 +85,7 @@ export default function Home() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `prompt_${config.dateToday}_${selectedLLM}.txt`;
+    a.download = `prompt_${config.dateToday}.txt`;
     a.click();
     URL.revokeObjectURL(url);
     toast.success('ダウンロードしました');
@@ -184,6 +153,15 @@ export default function Home() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowUsageGuide(!showUsageGuide)}
+              className="text-xs"
+            >
+              <HelpCircle className="w-4 h-4 mr-1" />
+              <span className="hidden sm:inline">使い方</span>
+            </Button>
             <span className="text-xs text-muted-foreground hidden sm:inline">
               {config.dateToday}
             </span>
@@ -197,119 +175,30 @@ export default function Home() {
       </header>
 
       <main className="container py-4">
-        {/* LLM選択 */}
-        <div className="mb-4">
-          <div className="flex flex-wrap items-center gap-2 mb-2">
-            <Label className="text-sm font-medium">対象LLM:</Label>
-            <div className="flex flex-wrap gap-1">
-              {LLM_PROVIDERS.map(provider => (
-                <button
-                  key={provider.id}
-                  onClick={() => setSelectedLLM(provider.id)}
-                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
-                    selectedLLM === provider.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-                  }`}
-                  style={selectedLLM === provider.id ? { backgroundColor: provider.color } : {}}
-                >
-                  <span className="mr-1">{provider.icon}</span>
-                  <span className="hidden sm:inline">{provider.name}</span>
-                  <span className="sm:hidden">{provider.name.split(' ')[0]}</span>
-                </button>
-              ))}
+        {/* 使い方ガイド */}
+        {showUsageGuide && (
+          <div className="mb-4 p-4 bg-primary/5 border border-primary/20 rounded-lg relative">
+            <button
+              onClick={() => setShowUsageGuide(false)}
+              className="absolute top-2 right-2 p-1 hover:bg-primary/10 rounded"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <h3 className="font-semibold text-sm mb-2 text-primary">📖 使い方</h3>
+            <ol className="text-sm space-y-1.5 text-muted-foreground">
+              <li><span className="font-medium text-foreground">1.</span> 目的プリセットを選択（医療機器開発、臨床運用、研究倫理、生成AI）</li>
+              <li><span className="font-medium text-foreground">2.</span> 探索テーマを入力（例：医療AIの臨床導入における安全管理）</li>
+              <li><span className="font-medium text-foreground">3.</span> 必要に応じて対象範囲・対象者・オプションを調整</li>
+              <li><span className="font-medium text-foreground">4.</span> 「コピー」ボタンでプロンプトをコピー</li>
+              <li><span className="font-medium text-foreground">5.</span> お好みのLLM（Gemini、ChatGPT、Claude等）に貼り付けて実行</li>
+            </ol>
+            <div className="mt-3 pt-3 border-t border-primary/20">
+              <p className="text-xs text-muted-foreground">
+                💡 <span className="font-medium">対応LLM:</span> Google Gemini、ChatGPT、Claude、Perplexity、Microsoft Copilot など、Web検索機能を持つLLMで使用できます。
+              </p>
             </div>
           </div>
-
-          {/* モデル選択 */}
-          {llmProvider && (
-            <div className="flex flex-wrap items-center gap-2">
-              <Label className="text-sm">モデル:</Label>
-              <Select value={selectedModelId} onValueChange={setSelectedModelId}>
-                <SelectTrigger className="w-[200px] h-8 text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={llmProvider.freeModel.id}>
-                    {llmProvider.freeModel.name}
-                  </SelectItem>
-                  {llmProvider.paidModels.map(model => (
-                    <SelectItem key={model.id} value={model.id}>
-                      {model.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowLLMInfo(!showLLMInfo)}
-                className="text-xs"
-              >
-                <Info className="w-3 h-3 mr-1" />
-                {showLLMInfo ? '閉じる' : '詳細'}
-              </Button>
-            </div>
-          )}
-
-          {/* LLM詳細情報 */}
-          {showLLMInfo && selectedModel && (
-            <div className="mt-3 p-3 bg-muted/50 rounded-lg text-sm">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <h4 className="font-medium mb-1 flex items-center gap-1">
-                    <Check className="w-3 h-3 text-green-600" />
-                    機能
-                  </h4>
-                  <ul className="space-y-0.5 text-xs text-muted-foreground">
-                    {selectedModel.features.map((f, i) => (
-                      <li key={i}>・{f}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-1 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3 text-yellow-600" />
-                    制限事項
-                  </h4>
-                  <ul className="space-y-0.5 text-xs text-muted-foreground">
-                    {selectedModel.limitations.length > 0 ? (
-                      selectedModel.limitations.map((l, i) => (
-                        <li key={i}>・{l}</li>
-                      ))
-                    ) : (
-                      <li>・特になし</li>
-                    )}
-                  </ul>
-                </div>
-              </div>
-              {selectedModel.tier === 'free' && freePaidDiff.paidOnlyFeatures.length > 0 && (
-                <div className="mt-2 pt-2 border-t border-border">
-                  <h4 className="font-medium mb-1 text-xs text-primary">
-                    有料版で追加される機能:
-                  </h4>
-                  <ul className="flex flex-wrap gap-1">
-                    {freePaidDiff.paidOnlyFeatures.slice(0, 5).map((f, i) => (
-                      <span key={i} className="px-2 py-0.5 text-xs bg-primary/10 text-primary rounded">
-                        {f}
-                      </span>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {selectedModel.tips.length > 0 && (
-                <div className="mt-2 pt-2 border-t border-border">
-                  <h4 className="font-medium mb-1 text-xs">💡 Tips:</h4>
-                  <ul className="text-xs text-muted-foreground">
-                    {selectedModel.tips.map((t, i) => (
-                      <li key={i}>・{t}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+        )}
 
         {/* メインコンテンツ */}
         <div className="grid gap-4 lg:grid-cols-[400px_1fr]">
@@ -454,13 +343,13 @@ export default function Home() {
                 </CollapsibleTrigger>
                 <CollapsibleContent className="collapsible-content">
                   <div className="flex flex-wrap gap-1.5">
-                    {config.categories.map((cat, index) => (
+                    {currentPreset.categories.map(cat => (
                       <button
-                        key={cat.name}
-                        onClick={() => toggleCategory(index)}
-                        className={`chip text-xs ${cat.enabled ? 'active' : ''}`}
+                        key={cat}
+                        onClick={() => toggleCategory(cat)}
+                        className={`chip ${config.categories.find(c => c.name === cat)?.enabled ? 'active' : ''}`}
                       >
-                        {cat.name}
+                        {cat}
                       </button>
                     ))}
                   </div>
@@ -480,21 +369,20 @@ export default function Home() {
                 </CollapsibleTrigger>
                 <CollapsibleContent className="collapsible-content">
                   <div className="flex flex-wrap gap-1.5 mb-2">
-                    {config.keywordChips.map((kw, index) => (
+                    {currentPreset.keywordChips.map((kw: string) => (
                       <button
-                        key={kw.name}
-                        onClick={() => toggleKeywordChip(index)}
-                        className={`chip text-xs ${kw.enabled ? 'active' : ''}`}
+                        key={kw}
+                        onClick={() => toggleKeywordChip(kw)}
+                        className={`chip text-xs ${config.keywordChips.find(k => k.name === kw)?.enabled ? 'active' : ''}`}
                       >
-                        {kw.name}
+                        {kw}
                       </button>
                     ))}
                   </div>
-                  <Textarea
-                    value={config.customKeywords.join('\n')}
+                  <Input
+                    value={config.customKeywords}
                     onChange={(e) => setCustomKeywords(e.target.value)}
-                    placeholder="自由追加（1行1語）"
-                    rows={2}
+                    placeholder="カスタム検索語（カンマ区切り）"
                     className="text-sm"
                   />
                 </CollapsibleContent>
@@ -512,97 +400,104 @@ export default function Home() {
                   {sectionsOpen.domains ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                 </CollapsibleTrigger>
                 <CollapsibleContent className="collapsible-content">
-                  <div className="flex flex-wrap gap-1 text-xs text-muted-foreground">
+                  <div className="flex flex-wrap gap-1.5">
                     {config.priorityDomains.map(domain => (
-                      <span key={domain} className="px-2 py-0.5 bg-muted rounded">
+                      <span key={domain} className="chip active text-xs">
                         {domain}
                       </span>
                     ))}
                   </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    ※ 設定画面で編集できます
+                  </p>
                 </CollapsibleContent>
               </div>
             </Collapsible>
           </div>
 
           {/* 右カラム: 出力 */}
-          <div className="simple-card p-3">
+          <div className="simple-card p-0 overflow-hidden">
             <Tabs defaultValue="prompt" className="h-full flex flex-col">
-              <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <div className="flex items-center justify-between border-b border-border px-3 py-2">
                 <TabsList className="h-8">
                   <TabsTrigger value="prompt" className="text-xs px-3">プロンプト</TabsTrigger>
                   <TabsTrigger value="queries" className="text-xs px-3">検索クエリ</TabsTrigger>
                   <TabsTrigger value="json" className="text-xs px-3">JSON</TabsTrigger>
                 </TabsList>
-                <div className="flex flex-wrap gap-1">
-                  <Button variant="outline" size="sm" onClick={handleCopy} className="h-7 text-xs">
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="sm" onClick={handleCopy} className="h-7 text-xs">
                     <Copy className="w-3 h-3 mr-1" />
                     コピー
                   </Button>
-                  <Button variant="outline" size="sm" onClick={handleDownload} className="h-7 text-xs">
+                  <Button variant="ghost" size="sm" onClick={handleDownload} className="h-7 text-xs">
                     <Download className="w-3 h-3 mr-1" />
                     DL
                   </Button>
-                  <Button variant="outline" size="sm" onClick={handleShare} className="h-7 text-xs">
+                  <Button variant="ghost" size="sm" onClick={handleShare} className="h-7 text-xs">
                     <Share2 className="w-3 h-3 mr-1" />
                     共有
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => resetConfig()} className="h-7 text-xs text-destructive">
+                  <Button variant="ghost" size="sm" onClick={resetConfig} className="h-7 text-xs text-destructive hover:text-destructive">
                     <RotateCcw className="w-3 h-3 mr-1" />
                     リセット
                   </Button>
                 </div>
               </div>
 
-              {!config.query && (
-                <div className="mb-3 p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                  <p className="text-xs text-yellow-700 dark:text-yellow-400 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" />
-                    探索テーマを入力してください
-                  </p>
-                </div>
-              )}
-
-              <TabsContent value="prompt" className="flex-1 mt-0">
-                <div className="prompt-output custom-scrollbar">
-                  {generatedPrompt}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="queries" className="flex-1 mt-0">
-                <div className="space-y-2">
-                  {searchQueries.map((query, i) => (
-                    <div key={i} className="flex items-center gap-2 p-2 bg-muted/30 rounded">
-                      <span className="text-xs text-muted-foreground w-5">{i + 1}.</span>
-                      <code className="text-sm flex-1 break-all">{query}</code>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6"
-                        onClick={async () => {
-                          await navigator.clipboard.writeText(query);
-                          toast.success('コピーしました');
-                        }}
-                      >
-                        <Copy className="w-3 h-3" />
-                      </Button>
+              <TabsContent value="prompt" className="flex-1 m-0 p-0">
+                <div className="h-full min-h-[400px] lg:min-h-[600px] overflow-auto">
+                  {!config.query ? (
+                    <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
+                      <span className="text-yellow-600 mr-2">⚠</span>
+                      探索テーマを入力してください
                     </div>
-                  ))}
+                  ) : (
+                    <pre className="p-4 text-sm whitespace-pre-wrap font-mono leading-relaxed">
+                      {generatedPrompt}
+                    </pre>
+                  )}
                 </div>
               </TabsContent>
 
-              <TabsContent value="json" className="flex-1 mt-0">
-                <div className="prompt-output custom-scrollbar">
-                  {configToJSON(config)}
+              <TabsContent value="queries" className="flex-1 m-0 p-0">
+                <div className="h-full min-h-[400px] lg:min-h-[600px] overflow-auto p-4">
+                  <h4 className="font-medium text-sm mb-3">検索クエリ一覧</h4>
+                  <div className="space-y-2">
+                    {searchQueries.map((query, i) => (
+                      <div key={i} className="flex items-start gap-2 p-2 bg-muted/50 rounded text-sm">
+                        <span className="text-muted-foreground">{i + 1}.</span>
+                        <code className="flex-1 break-all">{query}</code>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 shrink-0"
+                          onClick={async () => {
+                            await navigator.clipboard.writeText(query);
+                            toast.success('コピーしました');
+                          }}
+                        >
+                          <Copy className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="flex gap-2 mt-2">
-                  <Button variant="outline" size="sm" onClick={handleExportJSON} className="text-xs">
-                    <Download className="w-3 h-3 mr-1" />
-                    エクスポート
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={handleImportJSON} className="text-xs">
-                    <Upload className="w-3 h-3 mr-1" />
-                    インポート
-                  </Button>
+              </TabsContent>
+
+              <TabsContent value="json" className="flex-1 m-0 p-0">
+                <div className="h-full min-h-[400px] lg:min-h-[600px] overflow-auto p-4">
+                  <div className="flex gap-2 mb-3">
+                    <Button variant="outline" size="sm" onClick={handleExportJSON} className="text-xs">
+                      <Download className="w-3 h-3 mr-1" />
+                      エクスポート
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={handleImportJSON} className="text-xs">
+                      インポート
+                    </Button>
+                  </div>
+                  <pre className="text-xs bg-muted/50 p-3 rounded overflow-auto">
+                    {configToJSON(config)}
+                  </pre>
                 </div>
               </TabsContent>
             </Tabs>
@@ -613,7 +508,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-border mt-8 py-4">
         <div className="container text-center text-xs text-muted-foreground">
-          <p>本アプリは情報整理支援ツールです。個別ケースは専門家にご相談ください。</p>
+          本アプリは情報整理支援ツールです。個別ケースは専門家にご相談ください。
         </div>
       </footer>
     </div>
