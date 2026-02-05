@@ -58,16 +58,13 @@ const MOBILE_MEDIA_QUERY = '(max-width: 1023px)';
 const TEXT_INPUT_TYPES = new Set(['text', 'search', 'email', 'number', 'tel', 'url', 'password']);
 
 /**
- * Full Version Overlay - ロックされた機能の表示
- * Freemium conversion optimized design
+ * Coming Soon オーバーレイコンポーネント
  */
-function FullVersionOverlay({
+function ComingSoonOverlay({
   featureName,
-  benefit,
   children,
 }: {
   featureName: string;
-  benefit?: string;
   children: React.ReactNode;
 }) {
   const { isMinimalMode } = useMinimalMode();
@@ -78,42 +75,28 @@ function FullVersionOverlay({
 
   const handleClick = () => {
     trackComingSoonClick(featureName);
-    toast('🔓 Full Version Feature', {
-      description: benefit || `Unlock "${featureName}" for advanced control`,
-      action: {
-        label: 'Learn More',
-        onClick: () => window.open('https://cursorvers.github.io/guidescope/', '_blank'),
-      },
+    toast.info(`「${featureName}」は近日公開予定です`, {
+      description: 'ご興味ありがとうございます！',
     });
   };
 
   return (
-    <div className="relative group">
-      {/* Teaser content with blur */}
-      <div className="opacity-50 pointer-events-none select-none blur-[1px]">
+    <div className="relative">
+      <div className="opacity-40 pointer-events-none select-none">
         {children}
       </div>
-      {/* Attractive overlay */}
       <button
         onClick={handleClick}
-        className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10 backdrop-blur-[2px] rounded-lg cursor-pointer hover:from-primary/10 hover:to-primary/15 transition-all border border-primary/20 hover:border-primary/30"
+        className="absolute inset-0 flex items-center justify-center bg-muted/60 backdrop-blur-[1px] rounded-lg cursor-pointer hover:bg-muted/70 transition-colors"
       >
-        <span className="flex items-center gap-2 text-sm font-medium text-primary bg-background/90 px-4 py-2 rounded-full shadow-lg border border-primary/20">
-          <Lock className="w-4 h-4" />
-          Full Version
+        <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground bg-background/80 px-3 py-1.5 rounded-full shadow-sm">
+          <Lock className="w-3 h-3" />
+          Coming Soon
         </span>
-        {benefit && (
-          <span className="text-xs text-muted-foreground mt-2 px-3 text-center max-w-[200px]">
-            {benefit}
-          </span>
-        )}
       </button>
     </div>
   );
 }
-
-// Alias for backward compatibility
-const ComingSoonOverlay = FullVersionOverlay;
 
 type ExecuteButtonBarProps = {
   onExecute: () => void;
@@ -420,15 +403,33 @@ export default function Home() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border">
-        <div className="container flex items-center justify-between h-14">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-primary-foreground" />
+        <div className="container flex items-center justify-between h-16">
+          <div className="flex items-center gap-4">
+            {/* Product Name - Primary */}
+            <div className="flex items-center gap-2">
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-sm">
+                <Sparkles className="w-5 h-5 text-primary-foreground" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold tracking-tight text-foreground">GuideScope</h1>
+                <p className="text-[10px] text-muted-foreground leading-tight">生成AI 国内ガイドライン検索</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-base font-semibold leading-tight">GuideScope</h1>
-              <p className="text-xs text-muted-foreground">生成AI 国内ガイドライン検索プロンプト設計</p>
-            </div>
+
+            {/* Cursorvers Branding - Secondary */}
+            <a
+              href="https://cursorvers.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden sm:flex items-center gap-1.5 pl-4 border-l border-border/50 hover:opacity-80 transition-opacity"
+            >
+              <img
+                src="/cursorvers-logo.svg"
+                alt="Cursorvers"
+                className="w-5 h-5 object-contain"
+              />
+              <span className="text-[10px] text-muted-foreground font-medium">Cursorvers Inc.</span>
+            </a>
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -685,60 +686,64 @@ export default function Home() {
               )}
             </div>
 
-            {/* 3. 対象者 - Lite版で利用可能 */}
-            <Collapsible
-              open={sectionsOpen.audience}
-              onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, audience: open })}
-            >
-              <div className="simple-card">
-                <CollapsibleTrigger className="collapsible-header">
-                  <span className="text-sm font-medium">対象者</span>
-                  {sectionsOpen.audience ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                </CollapsibleTrigger>
-                <CollapsibleContent className="collapsible-content">
-                  <div className="flex flex-wrap gap-1.5">
-                    {['医療機関', '提供事業者', '開発企業', '研究者', '審査対応'].map(audience => (
-                      <button
-                        key={audience}
-                        onClick={() => toggleAudience(audience)}
-                        className={`chip ${config.audiences.includes(audience) ? 'active' : ''}`}
-                      >
-                        {audience}
-                      </button>
-                    ))}
-                  </div>
-                </CollapsibleContent>
-              </div>
-            </Collapsible>
+            {/* 3. 対象者 - グレーアウト対象 */}
+            <ComingSoonOverlay featureName="対象者">
+              <Collapsible
+                open={sectionsOpen.audience}
+                onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, audience: open })}
+              >
+                <div className="simple-card">
+                  <CollapsibleTrigger className="collapsible-header">
+                    <span className="text-sm font-medium">対象者</span>
+                    {sectionsOpen.audience ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="collapsible-content">
+                    <div className="flex flex-wrap gap-1.5">
+                      {['医療機関', '提供事業者', '開発企業', '研究者', '審査対応'].map(audience => (
+                        <button
+                          key={audience}
+                          onClick={() => toggleAudience(audience)}
+                          className={`chip ${config.audiences.includes(audience) ? 'active' : ''}`}
+                        >
+                          {audience}
+                        </button>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </div>
+              </Collapsible>
+            </ComingSoonOverlay>
 
-            {/* 4. 対象範囲 - Lite版で利用可能 */}
-            <Collapsible
-              open={sectionsOpen.scope}
-              onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, scope: open })}
-            >
-              <div className="simple-card">
-                <CollapsibleTrigger className="collapsible-header">
-                  <span className="text-sm font-medium">対象範囲</span>
-                  {sectionsOpen.scope ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                </CollapsibleTrigger>
-                <CollapsibleContent className="collapsible-content">
-                  <div className="flex flex-wrap gap-1.5">
-                    {['医療AI', '生成AI', 'SaMD', '医療情報セキュリティ', '医療データ利活用', '研究倫理'].map(scope => (
-                      <button
-                        key={scope}
-                        onClick={() => toggleScope(scope)}
-                        className={`chip ${config.scope.includes(scope) ? 'active' : ''}`}
-                      >
-                        {scope}
-                      </button>
-                    ))}
-                  </div>
-                </CollapsibleContent>
-              </div>
-            </Collapsible>
+            {/* 4. 対象範囲 - グレーアウト対象 */}
+            <ComingSoonOverlay featureName="対象範囲">
+              <Collapsible
+                open={sectionsOpen.scope}
+                onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, scope: open })}
+              >
+                <div className="simple-card">
+                  <CollapsibleTrigger className="collapsible-header">
+                    <span className="text-sm font-medium">対象範囲</span>
+                    {sectionsOpen.scope ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="collapsible-content">
+                    <div className="flex flex-wrap gap-1.5">
+                      {['医療AI', '生成AI', 'SaMD', '医療情報セキュリティ', '医療データ利活用', '研究倫理'].map(scope => (
+                        <button
+                          key={scope}
+                          onClick={() => toggleScope(scope)}
+                          className={`chip ${config.scope.includes(scope) ? 'active' : ''}`}
+                        >
+                          {scope}
+                        </button>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </div>
+              </Collapsible>
+            </ComingSoonOverlay>
 
-            {/* 5. カテゴリ - Full Version */}
-            <FullVersionOverlay featureName="Categories" benefit="Quick-select relevant guideline categories">
+            {/* 5. カテゴリ - グレーアウト対象 */}
+            <ComingSoonOverlay featureName="カテゴリ">
               <Collapsible
                 open={sectionsOpen.categories}
                 onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, categories: open })}
@@ -763,10 +768,10 @@ export default function Home() {
                   </CollapsibleContent>
                 </div>
               </Collapsible>
-            </FullVersionOverlay>
+            </ComingSoonOverlay>
 
-            {/* 6. 追加検索語 - Full Version */}
-            <FullVersionOverlay featureName="Keywords" benefit="Add custom search terms for precision">
+            {/* 6. 追加検索語 - グレーアウト対象 */}
+            <ComingSoonOverlay featureName="追加検索語">
               <Collapsible
                 open={sectionsOpen.keywords}
                 onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, keywords: open })}
@@ -797,10 +802,10 @@ export default function Home() {
                   </CollapsibleContent>
                 </div>
               </Collapsible>
-            </FullVersionOverlay>
+            </ComingSoonOverlay>
 
-            {/* 7. 優先ドメイン - Full Version */}
-            <FullVersionOverlay featureName="Priority Domains" benefit="Prioritize official government sources">
+            {/* 7. 優先ドメイン - グレーアウト対象 */}
+            <ComingSoonOverlay featureName="優先ドメイン">
               <Collapsible
                 open={sectionsOpen.domains}
                 onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, domains: open })}
@@ -824,10 +829,10 @@ export default function Home() {
                   </CollapsibleContent>
                 </div>
               </Collapsible>
-            </FullVersionOverlay>
+            </ComingSoonOverlay>
 
-            {/* 8. オプション - Full Version */}
-            <FullVersionOverlay featureName="Difficulty" benefit="Adjust output complexity level">
+            {/* 8. オプション - グレーアウト対象 */}
+            <ComingSoonOverlay featureName="オプション">
               <Collapsible
                 open={sectionsOpen.options}
                 onOpenChange={(open) => setSectionsOpen({ ...sectionsOpen, options: open })}
@@ -867,7 +872,7 @@ export default function Home() {
                   </CollapsibleContent>
                 </div>
               </Collapsible>
-            </FullVersionOverlay>
+            </ComingSoonOverlay>
 
             {/* 9. API / プログラムから使う */}
             <Collapsible
@@ -965,8 +970,14 @@ console.log(result.prompt);`}</pre>
               <div className="flex items-center justify-between border-b border-border px-3 py-2">
                 <TabsList className="h-8">
                   <TabsTrigger value="prompt" className="text-xs px-3">プロンプト</TabsTrigger>
-                  <TabsTrigger value="queries" className="text-xs px-3">
+                  <TabsTrigger
+                    value="queries"
+                    className="text-xs px-3"
+                    disabled={isMinimalMode}
+                    onClick={() => isMinimalMode && trackComingSoonClick('検索クエリタブ')}
+                  >
                     検索クエリ
+                    {isMinimalMode && <Lock className="w-2.5 h-2.5 ml-1 opacity-50" />}
                   </TabsTrigger>
                   <TabsTrigger
                     value="json"
