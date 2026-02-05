@@ -31,6 +31,9 @@ import {
   AlertCircle,
   Star,
   Zap,
+  ExternalLink,
+  MessageCircle,
+  Flag,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -45,6 +48,8 @@ import {
   trackComingSoonClick,
   trackSettingsAttempt,
   trackExecutePrompt,
+  trackContactClick,
+  trackOutdatedReportClick,
 } from '@/lib/analytics';
 
 const MOBILE_MEDIA_QUERY = '(max-width: 1023px)';
@@ -934,14 +939,13 @@ export default function Home() {
                     <CollapsibleContent>
                       <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg text-xs space-y-2">
                         <p className="font-medium text-foreground">使い方</p>
-                        <ol className="space-y-1 text-muted-foreground list-decimal list-inside">
-                          <li>各クエリ右側のコピーボタンをクリック</li>
-                          <li>Google検索またはLLMのブラウジング機能に貼り付け</li>
-                          <li>検索結果から公式ガイドラインを確認</li>
-                        </ol>
+                        <ul className="space-y-1 text-muted-foreground list-disc list-inside">
+                          <li><strong>クエリをクリック</strong> → Google検索が開く</li>
+                          <li><strong>コピーボタン</strong> → LLMに貼り付けて使う</li>
+                        </ul>
                         <p className="font-medium text-foreground mt-2">活用シーン</p>
                         <ul className="space-y-1 text-muted-foreground list-disc list-inside">
-                          <li>LLMが自動検索しない場合の手動検索ガイド</li>
+                          <li>LLMが自動検索しない場合の手動検索</li>
                           <li>特定ドメイン（厚労省、経産省等）に絞った検索</li>
                           <li>プロンプト全体を使わず部分的に検索したい場合</li>
                         </ul>
@@ -950,20 +954,35 @@ export default function Home() {
                   </Collapsible>
                   <div className="space-y-2">
                     {searchQueries.map((query, i) => (
-                      <div key={i} className="flex items-start gap-2 p-2 bg-muted/50 rounded text-sm">
+                      <div key={i} className="flex items-start gap-2 p-2 bg-muted/50 rounded text-sm group">
                         <span className="text-muted-foreground">{i + 1}.</span>
-                        <code className="flex-1 break-all">{query}</code>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 shrink-0"
-                          onClick={async () => {
-                            await navigator.clipboard.writeText(query);
-                            toast.success('コピーしました');
-                          }}
+                        <a
+                          href={`https://www.google.com/search?q=${encodeURIComponent(query)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 break-all text-primary hover:underline cursor-pointer flex items-start gap-1"
                         >
-                          <Copy className="w-3 h-3" />
-                        </Button>
+                          <code className="flex-1">{query}</code>
+                          <ExternalLink className="w-3 h-3 mt-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </a>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 shrink-0"
+                              onClick={async () => {
+                                await navigator.clipboard.writeText(query);
+                                toast.success('コピーしました');
+                              }}
+                            >
+                              <Copy className="w-3 h-3" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="left">
+                            <p className="text-xs">LLMに貼り付け用にコピー</p>
+                          </TooltipContent>
+                        </Tooltip>
                       </div>
                     ))}
                   </div>
@@ -1004,8 +1023,33 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="border-t border-border mt-8 py-4 mb-24 lg:mb-0">
-        <div className="container text-center text-xs text-muted-foreground">
-          本アプリは情報整理支援ツールです。個別ケースは専門家にご相談ください。
+        <div className="container">
+          <p className="text-center text-xs text-muted-foreground mb-3">
+            本アプリは情報整理支援ツールです。個別ケースは専門家にご相談ください。
+          </p>
+          <div className="flex items-center justify-center gap-4 text-xs">
+            <a
+              href="https://script.google.com/macros/s/AKfycbwDP0d67qtifyms2h67LawjNWJi_Lh44faPC7Z4axfS_Gdmjzcd50rcl_kmTYBTysKirQ/exec"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+              onClick={trackContactClick}
+            >
+              <MessageCircle className="w-3 h-3" />
+              お問い合わせ
+            </a>
+            <span className="text-border">|</span>
+            <a
+              href="https://script.google.com/macros/s/AKfycbwDP0d67qtifyms2h67LawjNWJi_Lh44faPC7Z4axfS_Gdmjzcd50rcl_kmTYBTysKirQ/exec?type=outdated"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+              onClick={trackOutdatedReportClick}
+            >
+              <Flag className="w-3 h-3" />
+              情報が古い？報告する
+            </a>
+          </div>
         </div>
       </footer>
 
