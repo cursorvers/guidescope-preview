@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "updatedAt": "2026-02-05T04:07:09.160Z",
+  "updatedAt": "2026-02-05T05:08:08.119Z",
   "skills": {},
   "commands": {
     "vote": {
@@ -11,9 +11,9 @@
   "agents": {},
   "hooks": {
     "pretooluse-guard": {
-      "triggered": 3,
-      "blocked": 3,
-      "lastTriggered": "2026-02-05T04:07:09.149Z"
+      "triggered": 4,
+      "blocked": 4,
+      "lastTriggered": "2026-02-05T05:08:08.112Z"
     }
   }
 }
