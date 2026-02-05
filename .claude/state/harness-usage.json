@@ -1,7 +1,12 @@
 {
   "version": "1.0",
-  "updatedAt": "2026-02-05T08:55:44.526Z",
-  "skills": {},
+  "updatedAt": "2026-02-05T09:46:15.805Z",
+  "skills": {
+    "vote": {
+      "count": 1,
+      "lastUsed": "2026-02-05T09:46:15.802Z"
+    }
+  },
   "commands": {
     "vote": {
       "count": 1,
