@@ -6,6 +6,7 @@
  */
 
 import type { AppConfig } from './presets';
+import { getDifficultyPreset } from './presets';
 import type { ExtendedSettings } from './settings';
 import { loadExtendedSettings, DEFAULT_ROLE_TITLE, DEFAULT_ROLE_DESCRIPTION } from './settings';
 
@@ -369,8 +370,34 @@ PROOF_SECTION_END`;
 export function generatePrompt(config: AppConfig, extSettings?: ExtendedSettings): string {
   // Load extended settings if not provided
   const settings = extSettings || loadExtendedSettings();
-  
-  let prompt = buildBaseTemplate(settings);
+
+  // Get difficulty preset settings
+  const difficultyPreset = getDifficultyPreset(config.difficultyLevel);
+  const presetSettings = difficultyPreset.settings;
+
+  // Apply difficulty preset to settings
+  const adjustedSettings: ExtendedSettings = {
+    ...settings,
+    output: {
+      ...settings.output,
+      detailLevel: presetSettings.detailLevel,
+      eGovCrossReference: presetSettings.eGovCrossReference || config.eGovCrossReference,
+      includeLawExcerpts: presetSettings.includeLawExcerpts,
+    },
+    search: {
+      ...settings.search,
+      recursiveDepth: presetSettings.recursiveDepth,
+      maxResults: presetSettings.maxResults,
+    },
+  };
+
+  // Override proofMode from preset if professional
+  const effectiveConfig = {
+    ...config,
+    proofMode: presetSettings.proofMode || config.proofMode,
+  };
+
+  let prompt = buildBaseTemplate(adjustedSettings);
   
   // Replace date
   prompt = prompt.replace(/\[\[DATE_TODAY\]\]/g, config.dateToday);
@@ -430,8 +457,8 @@ export function generatePrompt(config: AppConfig, extSettings?: ExtendedSettings
     formatList(enabledCategories)
   );
   
-  // Handle e-Gov section (settings takes priority)
-  if (!settings.output.eGovCrossReference) {
+  // Handle e-Gov section (use adjusted settings from difficulty preset)
+  if (!adjustedSettings.output.eGovCrossReference) {
     // Remove EGOV_SECTION
     prompt = prompt.replace(
       /EGOV_SECTION_BEGIN[\s\S]*?EGOV_SECTION_END/g,
@@ -442,9 +469,9 @@ export function generatePrompt(config: AppConfig, extSettings?: ExtendedSettings
     prompt = prompt.replace(/EGOV_SECTION_BEGIN\n?/g, '');
     prompt = prompt.replace(/EGOV_SECTION_END\n?/g, '');
   }
-  
-  // Handle proof section
-  if (!config.proofMode) {
+
+  // Handle proof section (use effective config from difficulty preset)
+  if (!effectiveConfig.proofMode) {
     // Remove PROOF_SECTION
     prompt = prompt.replace(
       /PROOF_SECTION_BEGIN[\s\S]*?PROOF_SECTION_END/g,
